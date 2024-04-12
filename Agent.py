@@ -74,6 +74,12 @@ class Agent:
             direction = directions.get(str((dx, dy)), '')
             path_str += "=>{}=>[{},{}]".format(direction, path[i].x, path[i].y)
         return "[{},{}]{}".format(self.root.x, self.root.y, path_str)
-  
+    
+    
+    #Practice methods:
+    def get_walls(self):
+        walls =  self.wallnodes
+        return walls
+
    
     
