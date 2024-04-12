@@ -45,8 +45,4 @@ class Starter:
         input("Press enter to show Uniform Cost for second goal")
         print(self.treebased2.uniform_search())
         input("Press enter to exit Uniform Cost")
-
-        #Practice methods:
-    def get_walls(self):
-        walls = self.reader.get_walls()
-        return walls
+    

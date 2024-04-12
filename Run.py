@@ -27,7 +27,5 @@ if __name__ == "__main__":
             agent.uniform_search()
         elif response == "6":
             break
-        elif response == "69":
-            print(agent.get_walls())
         else:
             print("Please enter a valid response")
