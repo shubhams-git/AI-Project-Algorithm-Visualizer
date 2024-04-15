@@ -228,52 +228,127 @@ class Agent:
         print("Currently running Iterative Deepening Depth-First Search.")
         start_time = time.time()
         max_depth = 0
-        
+        all_visited = []  # List to keep track of all visited nodes across all depths
+
         while True:
-            result, path = self._dls(self.root, self.goalx, self.goaly, max_depth)
+            visited_this_depth = []
+            result, path = self._dls(self.root, self.goalx, self.goaly, max_depth, visited_this_depth)
+            all_visited.extend(visited_this_depth)  # Extend the overall visited list with this depth's visits
             if result != "continue":
                 execution_time = time.time() - start_time
                 print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in all_visited)))
                 if result == "success":
                     return "IDDFS Completed;\nPath: {}\nSteps: {}".format(self._format_path(path), len(path))
                 else:
                     return "Failed to find a solution"
             max_depth += 1
 
-    def _dls(self, node, goalx, goaly, depth):
+    def _dls(self, node, goalx, goaly, depth, visited):
+        visited.append(node)  # Add the node to visited list
         if node.x == goalx and node.y == goaly:
             return "success", [node]
         if depth == 0:
             return "continue", []
         else:
             for neighbor in self._get_neighbors(node):
-                if not neighbor.parent:  # Avoid revisiting the parent
+                if neighbor.parent is None and neighbor not in self.wallnodes:  # Avoid revisiting the parent and ensure not a wall
                     neighbor.parent = node
-                    result, path = self._dls(neighbor, goalx, goaly, depth - 1)
+                    result, path = self._dls(neighbor, goalx, goaly, depth - 1, visited)
                     if result == "success":
                         return "success", [node] + path
                     neighbor.parent = None
             return "continue", []
+    
+    def bidirectional_search(self):
+        print("Currently running Bidirectional Search.")
+        start_time = time.time()
 
+        if self.root.x == self.goalx and self.root.y == self.goaly:
+            print("Function execution time: {} seconds".format(time.time() - start_time))
+            return "Agent at goal already"
 
+        from_start = Queue()
+        from_goal = Queue()
 
+        visited_from_start = {self.root: None}  # Dictionary to track path and check for visits
+        visited_from_goal = {self.nodes[self.goalx][self.goaly]: None}  # Dictionary to track path and check for visits
+
+        from_start.put(self.root)
+        from_goal.put(self.nodes[self.goalx][self.goaly])
+
+        while not from_start.empty() and not from_goal.empty():
+            if self._meet_in_middle(from_start, visited_from_start, visited_from_goal, True):
+                mid_node, path = self._reconstruct_bidirectional_path(visited_from_start, visited_from_goal, True)
+                execution_time = time.time() - start_time
+                all_visited = list(visited_from_start.keys()) + list(visited_from_goal.keys())
+                print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in set(all_visited))))
+                return f"Bidirectional Search Completed;\nPath: {self._format_path(path)}\nSteps: {len(path)}"
+
+            if self._meet_in_middle(from_goal, visited_from_goal, visited_from_start, False):
+                mid_node, path = self._reconstruct_bidirectional_path(visited_from_goal, visited_from_start, False)
+                execution_time = time.time() - start_time
+                all_visited = list(visited_from_start.keys()) + list(visited_from_goal.keys())
+                print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in set(all_visited))))
+                return f"Bidirectional Search Completed;\nPath: {self._format_path(path)}\nSteps: {len(path)}"
+
+        return "Failed to find a solution"
+    
+    def _meet_in_middle(self, frontier, visited_by_this, visited_by_other, from_start):
+        if not frontier.empty():
+            current = frontier.get()
+
+            for neighbor in self._get_neighbors(current):
+                if neighbor not in self.wallnodes and neighbor not in visited_by_this:
+                    visited_by_this[neighbor] = current
+                    frontier.put(neighbor)
+                    if neighbor in visited_by_other:
+                        return True
+        return False
+ 
+    def _reconstruct_bidirectional_path(self, visited_from_one_side, visited_from_other_side, from_start):
+        # Find meeting point
+        meet_point = next(node for node in visited_from_one_side if node in visited_from_other_side)
+
+        # Path from start to meet_point
+        path_from_one_side = []
+        step = meet_point
+        while step is not None:
+            path_from_one_side.append(step)
+            step = visited_from_one_side[step]
+
+        # Path from goal to meet_point
+        path_from_other_side = []
+        step = visited_from_other_side[meet_point]
+        while step is not None:
+            path_from_other_side.append(step)
+            step = visited_from_other_side[step]
+
+        # Depending on the direction of the search, reverse the appropriate path
+        if from_start:
+            path_from_one_side.reverse()  # Reverse the path from start to meet_point
+            full_path = path_from_one_side + path_from_other_side
+        else:
+            path_from_other_side.reverse()  # Reverse the path from goal to meet_point
+            full_path = path_from_other_side + path_from_one_side
+
+        return meet_point, full_path
+
+   
     def _get_neighbors(self, current_node):
         directions = [(0, -1), (-1, 0), (0, 1), (1, 0)]  # Up, Left, Down, Right
         neighbors = []
         for dx, dy in directions:
             nx, ny = current_node.x + dx, current_node.y + dy
-            if 0 <= nx < self.length and 0 <= ny < self.width:
-                neighbor = self.nodes[nx][ny]
-                if not neighbor.wallstatus:  # Only add if it's not a wall
-                    neighbors.append(neighbor)
+            if 0 <= nx < self.length and 0 <= ny < self.width and self.nodes[nx][ny] not in self.wallnodes:
+                neighbors.append(self.nodes[nx][ny])
         return neighbors
 
     def _heuristic(self, node):
         # Manhattan distance is used as the heuristic
         return abs(node.x - self.goalx) + abs(node.y - self.goaly)
-
-
-
 
     def _reconstruct_path(self, current_node):
         path = []
