@@ -174,6 +174,88 @@ class Agent:
                     heappush(frontier, (total_cost, counter, neighbor))
 
         return "Failed to find a solution"
+    
+    def uniform_search(self):
+        print("Currently running Uniform Cost Search.")
+        start_time = time.time()
+        self.root.cost = 0  # Start with the root node having zero cost
+
+        if self.root.x == self.goalx and self.root.y == self.goaly:
+            print("Function execution time: {} seconds".format(time.time() - start_time))
+            return "Agent at goal already"
+
+        frontier = []
+        visited = []
+        counter = 0
+        heappush(frontier, (self.root.cost, counter, self.root))  # Push the root with its cost to the frontier
+
+        while frontier:
+            current_cost, _, current_node = heappop(frontier)
+            visited.append(current_node)
+
+            if current_node.x == self.goalx and current_node.y == self.goaly:
+                path = self._reconstruct_path(current_node)
+                execution_time = time.time() - start_time
+                print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
+                print("Number of nodes in the frontier: {}".format(len(frontier)))
+                return "Uniform Cost Search Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), len(path))
+
+            for neighbor in self._get_neighbors(current_node):
+                if neighbor in visited or neighbor in self.wallnodes:
+                    continue
+
+                tentative_cost = current_cost + 1  # Assuming uniform step cost
+
+                if not any((neighbor.x == n.x and neighbor.y == n.y) for _, _, n in frontier):
+                    neighbor.parent = current_node
+                    neighbor.cost = tentative_cost
+                    counter += 1
+                    heappush(frontier, (tentative_cost, counter, neighbor))
+                else:
+                    # Check if a cheaper path to the neighbor exists
+                    for i, (cost, _, n) in enumerate(frontier):
+                        if n.x == neighbor.x and n.y == neighbor.y and cost > tentative_cost:
+                            frontier[i] = (tentative_cost, counter, neighbor)
+                            neighbor.parent = current_node
+                            neighbor.cost = tentative_cost
+                            heappush(frontier, heappop(frontier))  # Reorder the heap after modification
+                            break
+
+        return "Failed to find a solution"
+    
+    def iddfs_search(self):
+        print("Currently running Iterative Deepening Depth-First Search.")
+        start_time = time.time()
+        max_depth = 0
+        
+        while True:
+            result, path = self._dls(self.root, self.goalx, self.goaly, max_depth)
+            if result != "continue":
+                execution_time = time.time() - start_time
+                print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                if result == "success":
+                    return "IDDFS Completed;\nPath: {}\nSteps: {}".format(self._format_path(path), len(path))
+                else:
+                    return "Failed to find a solution"
+            max_depth += 1
+
+    def _dls(self, node, goalx, goaly, depth):
+        if node.x == goalx and node.y == goaly:
+            return "success", [node]
+        if depth == 0:
+            return "continue", []
+        else:
+            for neighbor in self._get_neighbors(node):
+                if not neighbor.parent:  # Avoid revisiting the parent
+                    neighbor.parent = node
+                    result, path = self._dls(neighbor, goalx, goaly, depth - 1)
+                    if result == "success":
+                        return "success", [node] + path
+                    neighbor.parent = None
+            return "continue", []
+
+
 
     def _get_neighbors(self, current_node):
         directions = [(0, -1), (-1, 0), (0, 1), (1, 0)]  # Up, Left, Down, Right

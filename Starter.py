@@ -46,3 +46,14 @@ class Starter:
         print(self.treebased2.uniform_search())
         input("Press enter to exit Uniform Cost")
     
+    def CUS1(self):
+        print(self.treebased.iddfs_search())
+        input("Press enter to show Uniform Cost for second goal")
+        print(self.treebased2.iddfs_search())
+        input("Press enter to exit Uniform Cost")
+
+    def CUS2(self):
+        print(self.treebased.bidirectional_search())
+        input("Press enter to show Uniform Cost for second goal")
+        print(self.treebased2.bidirectional_search())
+        input("Press enter to exit Uniform Cost")

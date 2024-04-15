@@ -11,7 +11,9 @@ if __name__ == "__main__":
     print("3 - GBFS")
     print("4 - AStar")
     print("5 - Uniform Cost")
-    print("6 - exit")
+    print("6 - Custom Seach 1: Iterative Deepening Depth-First Search")
+    print("7 - Custom Seach 2: Bidirectional Search")
+    print("8 - exit")
 
     while True:
         response = input()
@@ -26,6 +28,10 @@ if __name__ == "__main__":
         elif response == "5":
             agent.uniform_search()
         elif response == "6":
+            agent.CUS1()
+        elif response == "7":
+            agent.CUS2()
+        elif response == "8":
             break
         else:
             print("Please enter a valid response")
