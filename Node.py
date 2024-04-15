@@ -4,6 +4,7 @@ class Node:
         self.y = givy
         self.wallstatus = False
         self.parent = parentnode
+        self.cost = float('inf')  # Initialize cost with infinity
         self.edges = []
 
     @property
@@ -45,3 +46,11 @@ class Node:
     @Edges.setter
     def Edges(self, value):
         self.edges = value
+
+    @property
+    def Cost(self):
+        return self.cost
+
+    @Cost.setter
+    def Cost(self, value):
+        self.cost = value

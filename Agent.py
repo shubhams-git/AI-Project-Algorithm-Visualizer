@@ -131,9 +131,67 @@ class Agent:
                     heappush(frontier, (self._heuristic(neighbor), counter, neighbor))
 
         return "Failed to get solution"
+    
+    def a_star_search(self):
+        steps = 0
+        print("Currently running A Star Algorithm.")
+        start_time = time.time()
+        self.root.cost = 0  # Initialize the starting node's cost to 0
+
+        if self.root.x == self.goalx and self.root.y == self.goaly:
+            print("Function execution time: {} seconds".format(time.time() - start_time))
+            return "Agent at goal already"
+
+        # Modify the structure to use a list and heapq as in gbfs_search
+        frontier = []
+        visited = []
+        counter = 0
+        heappush(frontier, (0, counter, self.root))
+
+        while frontier:
+            _, __, current_node = heappop(frontier)
+            visited.append(current_node)
+            steps += 1
+
+            if current_node.x == self.goalx and current_node.y == self.goaly:
+                path = self._reconstruct_path(current_node)
+                execution_time = time.time() - start_time
+                print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
+                print("Number of nodes in the frontier: {}".format(len(frontier)))
+                return "A* Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
+
+            for neighbor in self._get_neighbors(current_node):
+                if (neighbor.x, neighbor.y) in visited or neighbor in self.wallnodes:
+                    continue  # Consistently handle walls
+
+                tentative_cost = current_node.cost + 1
+                if tentative_cost < neighbor.cost:
+                    neighbor.cost = tentative_cost
+                    total_cost = tentative_cost + self._heuristic(neighbor)
+                    neighbor.parent = current_node
+                    counter += 1
+                    heappush(frontier, (total_cost, counter, neighbor))
+
+        return "Failed to find a solution"
+
+    def _get_neighbors(self, current_node):
+        directions = [(0, -1), (-1, 0), (0, 1), (1, 0)]  # Up, Left, Down, Right
+        neighbors = []
+        for dx, dy in directions:
+            nx, ny = current_node.x + dx, current_node.y + dy
+            if 0 <= nx < self.length and 0 <= ny < self.width:
+                neighbor = self.nodes[nx][ny]
+                if not neighbor.wallstatus:  # Only add if it's not a wall
+                    neighbors.append(neighbor)
+        return neighbors
 
     def _heuristic(self, node):
+        # Manhattan distance is used as the heuristic
         return abs(node.x - self.goalx) + abs(node.y - self.goaly)
+
+
+
 
     def _reconstruct_path(self, current_node):
         path = []
@@ -143,17 +201,6 @@ class Agent:
         path.reverse()
         return path
     
-    def _get_neighbors(self, current_node):
-        # Up, Left, Down, Right
-        directions = [(0, -1), (-1, 0), (0, 1), (1, 0)]
-        neighbors = []
-        for dx, dy in directions:
-            new_x, new_y = current_node.x + dx, current_node.y + dy
-            if 0 <= new_x < self.length and 0 <= new_y < self.width:
-                # Use the existing node from the 2D array
-                neighbors.append(self.nodes[new_x][new_y])
-        return neighbors
-
     def _format_path(self, path):
         # Define directions based on the delta of x and y coordinates
         directions = {(0, -1): "up", (0, 1): "down", (-1, 0): "left", (1, 0): "right"}
