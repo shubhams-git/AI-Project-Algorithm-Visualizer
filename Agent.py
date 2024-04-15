@@ -96,6 +96,7 @@ class Agent:
     
     
     def gbfs_search(self):
+        steps = 0
         print("Currently running GBFS.")
         start_time = time.time()
         if self.root.x == self.goalx and self.root.y == self.goaly:
@@ -111,16 +112,20 @@ class Agent:
         while frontier:
             _, __, current_node = heappop(frontier)
             visited.append(current_node)
+            steps += 1
+
 
             if current_node.x == self.goalx and current_node.y == self.goaly:
                 path = self._reconstruct_path(current_node)
                 print("Function execution time: {} milliseconds".format((time.time() - start_time) * 1000))
                 print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
                 print("Number of nodes in the frontier: {}".format(len(frontier)))
-                return "GBFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), len(visited))
+                return "GBFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
 
             for neighbor in sorted(self._get_neighbors(current_node), key=lambda x: (self._heuristic(x), priority_map.get((x.x - current_node.x, x.y - current_node.y), 99))):
-                if neighbor not in visited and not any(node[2] == neighbor for node in frontier) and neighbor not in self.wallnodes:
+                if (neighbor not in visited and 
+                    neighbor not in [n for n in frontier]  and
+                    neighbor not in self.wallnodes):
                     neighbor.parent = current_node  # Set the parent of the neighbor before pushing to the heap
                     counter += 1
                     heappush(frontier, (self._heuristic(neighbor), counter, neighbor))
