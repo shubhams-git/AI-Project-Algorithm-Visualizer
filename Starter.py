@@ -18,42 +18,36 @@ class Starter:
 
     def bfs_search(self):
         print(self.treebased.bfs_search())
-        input("Press enter to show BFS for second goal")
-        print(self.treebased2.bfs_search())
-        input("Press enter to exit BFS")
+        # input("Press enter to show BFS for second goal")
+        # print(self.treebased2.bfs_search())
+        # input("Press enter to exit BFS")
 
     def dfs_search(self):
         print(self.treebased.dfs_search())
-        input("Press enter to show DFS for second goal")
-        print(self.treebased2.dfs_search())
-        input("Press enter to exit DFS")
+        # input("Press enter to show DFS for second goal")
+        # print(self.treebased2.dfs_search())
+        # input("Press enter to exit DFS")
 
     def gbfs_search(self):
         print(self.treebased.gbfs_search())
-        input("Press enter to show GBFS for second goal")
-        print(self.treebased2.gbfs_search())
-        input("Press enter to exit GBFS")
+        # input("Press enter to show GBFS for second goal")
+        # print(self.treebased2.gbfs_search())
+        # input("Press enter to exit GBFS")
 
     def a_star_search(self):
         print(self.treebased.a_star_search())
-        input("Press enter to show AStar for second goal")
-        print(self.treebased2.a_star_search())
-        input("Press enter to exit AStar")
+        # input("Press enter to show AStar for second goal")
+        # print(self.treebased2.a_star_search())
+        # input("Press enter to exit AStar")
 
-    def uniform_search(self):
-        print(self.treebased.uniform_search())
-        input("Press enter to show Uniform Cost for second goal")
-        print(self.treebased2.uniform_search())
-        input("Press enter to exit Uniform Cost")
+    def uniform_cost_search(self):
+        print(self.treebased.uniform_cost_search())
+        # input("Press enter to show Uniform Cost Searchfor second goal")
+        # print(self.treebased2.uniform_cost_search())
+        # input("Press enter to exit Uniform Cost Search")
     
-    def CUS1(self):
+    def iddfs_search(self):
         print(self.treebased.iddfs_search())
-        input("Press enter to show Uniform Cost for second goal")
-        print(self.treebased2.iddfs_search())
-        input("Press enter to exit Uniform Cost")
-
-    def CUS2(self):
-        print(self.treebased.bidirectional_search())
-        input("Press enter to show Uniform Cost for second goal")
-        print(self.treebased2.bidirectional_search())
-        input("Press enter to exit Uniform Cost")
+        # input("Press enter to show Uniform Cost for second goal")
+        # print(self.treebased2.iddfs_search())
+        # input("Press enter to exit Uniform Cost")

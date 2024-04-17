@@ -56,9 +56,8 @@ class Agent:
 
         print("Number of nodes in the frontier: {}".format(frontier.qsize()))  # Print the number of nodes in the frontier
         return "Failed to get solution"
-
+    
     def dfs_search(self):
-        steps = 0
         print("Currently running DFS.")
         start_time = time.time()
 
@@ -72,158 +71,81 @@ class Agent:
 
         while not frontier.empty():
             current_node = frontier.get()
-            visited.append(current_node)
-            steps += 1
+            if current_node not in visited:
+                visited.append(current_node)
 
-            if current_node.x == self.goalx and current_node.y == self.goaly:
-                path = self._reconstruct_path(current_node)
-                print("Function execution time: {} milliseconds".format((time.time() - start_time) * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                print("Number of nodes in the frontier: {}".format(frontier.qsize()))  # Print the number of nodes in the frontier
-                return "DFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
+                if current_node.x == self.goalx and current_node.y == self.goaly:
+                    path = self._reconstruct_path(current_node)
+                    execution_time = time.time() - start_time
+                    print("Function execution time: {} milliseconds".format(execution_time * 1000))
+                    print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
+                    print("Number of nodes in the frontier: {}".format(frontier.qsize()))
+                    return "DFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), len(visited))
 
-            neighbors = self._get_neighbors(current_node)
-            neighbors.reverse()  # Reverse the order of neighbors
-            for neighbor in neighbors:
-                if (neighbor not in visited and 
-                    neighbor not in [n for n in frontier.queue] and 
-                    not any(node.x == neighbor.x and node.y == neighbor.y for node in self.wallnodes)):
-                    neighbor.parent = current_node  # Set the parent of the neighbor
-                    frontier.put(neighbor)
+                for neighbor in reversed(self._get_neighbors(current_node)):
+                    if neighbor not in visited and neighbor not in self.wallnodes:
+                        neighbor.parent = current_node
+                        frontier.put(neighbor)
 
-        print("Number of nodes in the frontier: {}".format(frontier.qsize()))  # Print the number of nodes in the frontier
+        print("Number of nodes in the frontier: {}".format(frontier.qsize()))
         return "Failed to get solution"
     
-    
-    def gbfs_search(self):
+    def search(self, use_cost=True, use_heuristic=True):
         steps = 0
-        print("Currently running GBFS.")
+        print("Currently running Search with" + (" Cost" if use_cost else "") + (" and Heuristic." if use_heuristic else "."))
         start_time = time.time()
-        if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
-
-        priority_map = {(0, -1): 0, (-1, 0): 1, (0, 1): 2, (1, 0): 3}  # Priorities: Up, Left, Down, Right
-        frontier = []
-        visited = []
-        counter = 0
-        heappush(frontier, (0, counter, self.root))
-
-        while frontier:
-            _, __, current_node = heappop(frontier)
-            visited.append(current_node)
-            steps += 1
-
-
-            if current_node.x == self.goalx and current_node.y == self.goaly:
-                path = self._reconstruct_path(current_node)
-                print("Function execution time: {} milliseconds".format((time.time() - start_time) * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                print("Number of nodes in the frontier: {}".format(len(frontier)))
-                return "GBFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
-
-            for neighbor in sorted(self._get_neighbors(current_node), key=lambda x: (self._heuristic(x), priority_map.get((x.x - current_node.x, x.y - current_node.y), 99))):
-                if (neighbor not in visited and 
-                    neighbor not in [n for n in frontier]  and
-                    neighbor not in self.wallnodes):
-                    neighbor.parent = current_node  # Set the parent of the neighbor before pushing to the heap
-                    counter += 1
-                    heappush(frontier, (self._heuristic(neighbor), counter, neighbor))
-
-        return "Failed to get solution"
-    
-    def a_star_search(self):
-        steps = 0
-        print("Currently running A Star Algorithm.")
-        start_time = time.time()
-        self.root.cost = 0  # Initialize the starting node's cost to 0
 
         if self.root.x == self.goalx and self.root.y == self.goaly:
             print("Function execution time: {} seconds".format(time.time() - start_time))
             return "Agent at goal already"
 
-        # Modify the structure to use a list and heapq as in gbfs_search
-        frontier = []
+        frontier = PriorityQueue()
         visited = []
+        self.root.Cost = 0
         counter = 0
-        heappush(frontier, (0, counter, self.root))
+        frontier.put((0, counter, self.root))
 
-        while frontier:
-            _, __, current_node = heappop(frontier)
-            visited.append(current_node)
+        while not frontier.empty():
+            _, __, current_node = frontier.get()
+
+            if (current_node.x, current_node.y) in visited:
+                continue
+
+            visited.append((current_node.x, current_node.y))
             steps += 1
 
             if current_node.x == self.goalx and current_node.y == self.goaly:
                 path = self._reconstruct_path(current_node)
                 execution_time = time.time() - start_time
                 print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                print("Number of nodes in the frontier: {}".format(len(frontier)))
-                return "A* Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
+                print("Visited: {}".format('; '.join('[{},{}]'.format(x, y) for (x, y) in visited)))
+                return "Search Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
 
             for neighbor in self._get_neighbors(current_node):
                 if (neighbor.x, neighbor.y) in visited or neighbor in self.wallnodes:
                     continue  # Consistently handle walls
 
-                tentative_cost = current_node.cost + 1
-                if tentative_cost < neighbor.cost:
+                tentative_cost = current_node.Cost + 1 if use_cost else 0
+                heuristic_cost = self._heuristic(neighbor) if use_heuristic else 0
+                total_cost = tentative_cost + heuristic_cost
+
+                if total_cost < neighbor.cost:
                     neighbor.cost = tentative_cost
-                    total_cost = tentative_cost + self._heuristic(neighbor)
                     neighbor.parent = current_node
                     counter += 1
-                    heappush(frontier, (total_cost, counter, neighbor))
+                    frontier.put((total_cost, counter, neighbor))
 
         return "Failed to find a solution"
+
+    def gbfs_search(self):
+        return self.search(use_cost=False, use_heuristic=True)
     
-    def uniform_search(self):
-        print("Currently running Uniform Cost Search.")
-        start_time = time.time()
-        self.root.cost = 0  # Start with the root node having zero cost
-
-        if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
-
-        frontier = []
-        visited = []
-        counter = 0
-        heappush(frontier, (self.root.cost, counter, self.root))  # Push the root with its cost to the frontier
-
-        while frontier:
-            current_cost, _, current_node = heappop(frontier)
-            visited.append(current_node)
-
-            if current_node.x == self.goalx and current_node.y == self.goaly:
-                path = self._reconstruct_path(current_node)
-                execution_time = time.time() - start_time
-                print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                print("Number of nodes in the frontier: {}".format(len(frontier)))
-                return "Uniform Cost Search Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), len(path))
-
-            for neighbor in self._get_neighbors(current_node):
-                if neighbor in visited or neighbor in self.wallnodes:
-                    continue
-
-                tentative_cost = current_cost + 1  # Assuming uniform step cost
-
-                if not any((neighbor.x == n.x and neighbor.y == n.y) for _, _, n in frontier):
-                    neighbor.parent = current_node
-                    neighbor.cost = tentative_cost
-                    counter += 1
-                    heappush(frontier, (tentative_cost, counter, neighbor))
-                else:
-                    # Check if a cheaper path to the neighbor exists
-                    for i, (cost, _, n) in enumerate(frontier):
-                        if n.x == neighbor.x and n.y == neighbor.y and cost > tentative_cost:
-                            frontier[i] = (tentative_cost, counter, neighbor)
-                            neighbor.parent = current_node
-                            neighbor.cost = tentative_cost
-                            heappush(frontier, heappop(frontier))  # Reorder the heap after modification
-                            break
-
-        return "Failed to find a solution"
+    def a_star_search(self):
+        return self.search(use_cost=True, use_heuristic=True)
     
+    def uniform_cost_search(self):
+        return self.search(use_cost=True, use_heuristic=False)
+        
     def iddfs_search(self):
         print("Currently running Iterative Deepening Depth-First Search.")
         start_time = time.time()
@@ -231,13 +153,14 @@ class Agent:
         all_visited = []  # List to keep track of all visited nodes across all depths
 
         while True:
-            visited_this_depth = []
+            visited_this_depth = []  # List to track nodes visited at this depth
             result, path = self._dls(self.root, self.goalx, self.goaly, max_depth, visited_this_depth)
-            all_visited.extend(visited_this_depth)  # Extend the overall visited list with this depth's visits
+            all_visited.extend(visited_this_depth)  # Append this depth's visits to overall visits
             if result != "continue":
                 execution_time = time.time() - start_time
                 print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in all_visited)))
+                print("All Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in all_visited)))
+                print("Total Visits: {}".format(len(all_visited)))
                 if result == "success":
                     return "IDDFS Completed;\nPath: {}\nSteps: {}".format(self._format_path(path), len(path))
                 else:
@@ -245,20 +168,23 @@ class Agent:
             max_depth += 1
 
     def _dls(self, node, goalx, goaly, depth, visited):
-        visited.append(node)  # Add the node to visited list
+        visited.append(node)  # Append node to visited list to maintain the order of visitation
+
         if node.x == goalx and node.y == goaly:
             return "success", [node]
         if depth == 0:
             return "continue", []
-        else:
-            for neighbor in self._get_neighbors(node):
-                if neighbor.parent is None and neighbor not in self.wallnodes:  # Avoid revisiting the parent and ensure not a wall
-                    neighbor.parent = node
-                    result, path = self._dls(neighbor, goalx, goaly, depth - 1, visited)
-                    if result == "success":
-                        return "success", [node] + path
-                    neighbor.parent = None
-            return "continue", []
+
+        for neighbor in self._get_neighbors(node):
+            if neighbor not in visited and neighbor not in self.wallnodes:
+                neighbor.parent = node
+                result, path = self._dls(neighbor, goalx, goaly, depth - 1, visited)
+                if result == "success":
+                    return "success", [node] + path
+
+        return "continue", []
+
+
     
     def bidirectional_search(self):
         print("Currently running Bidirectional Search.")

@@ -10,14 +10,12 @@ if __name__ == "__main__":
         filename = "test.txt"  # Default to "test.txt" if no arguments provided
 
     agent = Starter(filename)
-    print("1 - BFS")
-    print("2 - DFS")
-    print("3 - GBFS")
-    print("4 - AStar")
-    print("5 - Uniform Cost")
-    print("6 - Custom Search 1: Iterative Deepening Depth-First Search")
-    print("7 - Custom Search 2: Bidirectional Search")
-    print("8 - exit")
+    print("1 - BFS (Breadth First Search)")
+    print("2 - DFS (Depth First Search)")
+    print("3 - GBFS (Greedy Best First Search)")
+    print("4 - AS (A Star Search)")
+    print("5 - CS1 (Uniform Cost Search)")
+    print("6 - CS2 (Iterative Deepening Depth-First Search)")
 
     # Replace the loop and input handling to allow command-line invocation
     if len(sys.argv) > 2:
@@ -30,12 +28,10 @@ if __name__ == "__main__":
             print(agent.gbfs_search())
         elif response == "AS":
             print(agent.a_star_search())
-        elif response == "US":
-            print(agent.uniform_search())
+        elif response == "CS1":
+            print(agent.uniform_cost_search())
         elif response == "CUS1":
-            print(agent.CUS1())
-        elif response == "CUS2":
-            print(agent.CUS2())
+            print(agent.iddfs_search())
         else:
             print("Invalid method.")
     else:
