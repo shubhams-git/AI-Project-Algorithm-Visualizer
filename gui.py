@@ -6,9 +6,6 @@ from Starter import Starter
 # Initialize Pygame and Pygame GUI Manager
 pygame.init()
 pygame.display.set_caption("Algorithm Visualizer")
-width, height = 800, 600
-screen = pygame.display.set_mode((width, height))
-manager = pygame_gui.UIManager((width, height))
 
 # Colors
 WHITE = (255, 255, 255)
@@ -27,43 +24,50 @@ grid_size = [starter.treebased.width, starter.treebased.length]
 agent_pos = (starter.treebased.root.x, starter.treebased.root.y)
 goals = [(starter.treebased.goalx, starter.treebased.goaly)]
 walls = [(wall.x, wall.y) for wall in starter.treebased.wallnodes]
+height = 450
+cell_size = (height) // grid_size[0] 
+cell_width = cell_size
+cell_height = cell_size
+grid_width = cell_size * grid_size[1]
+total_width = grid_width + 200  # Additional 200 pixels for control panel
+screen = pygame.display.set_mode((total_width, height))
+manager = pygame_gui.UIManager((total_width, height))
+button_height = int(height * 0.1)  # 5% of the screen height
 
-cell_width = 600 // grid_size[1]
-cell_height = height // grid_size[0]
+
+
+
 
 # Define control panel area and components for algorithm selection
 
-
-
-
 algorithm_buttons = {
     "BFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 50, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 50, 180, button_height),
         text='BFS',
         manager=manager
     ),
     "DFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 85, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 85, 180, button_height),
         text='DFS',
         manager=manager
     ),
     "A Star": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 120, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 120, 180, button_height),
         text='A Star',
         manager=manager
     ),
     "GBFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 155, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 155, 180, button_height),
         text='GBFS',
         manager=manager
     ),
     "Uniform Cost": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 190, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 190, 180, button_height),
         text='Uniform Cost',
         manager=manager
     ),
     "Iterative Deepening DFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(610, 225, 180, 30),
+        relative_rect=pygame.Rect(grid_width + 10, 225, 180, button_height),
         text='Iterative Deepening DFS',
         manager=manager
     )
@@ -73,8 +77,9 @@ algorithm_buttons = {
 # Track the selected algorithm
 selected_algorithm = "BFS"  # Default selection
 
-play_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(610, 500, 80, 40), text='Play', manager=manager)
-stop_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(700, 500, 80, 40), text='Stop', manager=manager)
+play_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_width + 10, height*.85, 80, button_height), text='Play', manager=manager)
+stop_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_width + 110, height*.85, 85, button_height), text='Stop/Reset', manager=manager)
+
 
 # Helper function to update the cell with color and redraw
 def update_cell(x, y, color):
