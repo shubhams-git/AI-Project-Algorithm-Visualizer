@@ -1,5 +1,6 @@
 from Agent import Agent
 from FileReader import FileReader
+import json
 
 
 class Starter:
@@ -17,7 +18,12 @@ class Starter:
         return ""
 
     def bfs_search(self):
-        print(self.treebased.bfs_search())
+        result_json_string = self.treebased.bfs_search()
+        result = json.loads(result_json_string)
+        if 'result' in result:
+            print("Path: ", result['result'].get('Path', 'No path found'))
+        else:
+            print("Search status: ", result.get('status', 'Unknown status'))
         # input("Press enter to show BFS for second goal")
         # print(self.treebased2.bfs_search())
         # input("Press enter to exit BFS")
@@ -51,3 +57,16 @@ class Starter:
         # input("Press enter to show Uniform Cost for second goal")
         # print(self.treebased2.iddfs_search())
         # input("Press enter to exit Uniform Cost")
+
+    def nodes_for_gui(self, algorithm_id):
+        print("From Starter: Algorithm id: ", algorithm_id)
+        if algorithm_id == 'BFS':
+            result_json_string = self.treebased.bfs_search()
+            result = json.loads(result_json_string)
+            if 'result' in result:
+                path = result['result'].get('Path', [])
+                visited = [tuple(node.values()) for node in result['visited']]
+                return path, visited
+            else:
+                return [], []  # No path found
+

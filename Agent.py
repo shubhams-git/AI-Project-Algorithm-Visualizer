@@ -3,6 +3,7 @@ from queue import Queue, LifoQueue, PriorityQueue
 from heapq import heappush, heappop
 from Node import Node
 import math
+import json
 
 
 
@@ -23,13 +24,14 @@ class Agent:
                     self.wallnodes.append(self.nodes[wall[0] + j][wall[1] + i])
     
     def bfs_search(self):
+        response = {}
         steps = 0
-        print("Currently running BFS.")
         start_time = time.time()
 
         if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
+            response['status'] = "Agent at goal already"
+            response['function_time'] = (time.time() - start_time) * 1000
+            return json.dumps(response)
 
         frontier = Queue()
         visited = []
@@ -37,25 +39,35 @@ class Agent:
 
         while not frontier.empty():
             current_node = frontier.get()
-            visited.append(current_node)
+            visited.append({"x": current_node.x, "y": current_node.y})  # Store nodes as dictionaries
             steps += 1
 
             if current_node.x == self.goalx and current_node.y == self.goaly:
                 path = self._reconstruct_path(current_node)
-                print("Function execution time: {} milliseconds".format((time.time() - start_time) * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                print("Number of nodes in the frontier: {}".format(frontier.qsize()))  # Print the number of nodes in the frontier
-                return "BFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
+                response['status'] = "BFS Completed"
+                response['function_time'] = (time.time() - start_time) * 1000
+                response['visited'] = visited
+                response['frontier_size'] = frontier.qsize()
+                response['result'] = {
+                    "Agent": [self.root.x, self.root.y],
+                    "Goal": [self.goalx, self.goaly],
+                    "Path": self._format_path(path),
+                    "Steps": steps
+                }
+                return json.dumps(response)
 
             for neighbor in self._get_neighbors(current_node):
-                if (neighbor not in visited and 
-                    neighbor not in [n for n in frontier.queue] and 
+                neighbor_coords = {"x": neighbor.x, "y": neighbor.y}
+                if (not any(node['x'] == neighbor.x and node['y'] == neighbor.y for node in visited) and
+                    neighbor not in [n for n in frontier.queue] and
                     not any(node.x == neighbor.x and node.y == neighbor.y for node in self.wallnodes)):
                     neighbor.parent = current_node  # Set the parent of the neighbor
                     frontier.put(neighbor)
 
-        print("Number of nodes in the frontier: {}".format(frontier.qsize()))  # Print the number of nodes in the frontier
-        return "Failed to get solution"
+        response['status'] = "Failed to find solution"
+        response['function_time'] = (time.time() - start_time) * 1000
+        response['frontier_size'] = frontier.qsize()
+        return json.dumps(response)
     
     def dfs_search(self):
         print("Currently running DFS.")
@@ -285,16 +297,9 @@ class Agent:
         return path
     
     def _format_path(self, path):
-        # Define directions based on the delta of x and y coordinates
-        directions = {(0, -1): "up", (0, 1): "down", (-1, 0): "left", (1, 0): "right"}
-        path_str = "[{},{}]".format(path[0].x, path[0].y)  # Start with the root node
-
-        for i in range(1, len(path)):
-            dx, dy = path[i].x - path[i - 1].x, path[i].y - path[i - 1].y
-            direction = directions.get((dx, dy), '')
-            path_str += " => {} => [{},{}]".format(direction, path[i].x, path[i].y)
-
-        return path_str
+        # Return a list of tuples where each tuple is (x, y) of a node along the path
+        path_coordinates = [(node.x, node.y) for node in path]
+        return path_coordinates
 
     
 
