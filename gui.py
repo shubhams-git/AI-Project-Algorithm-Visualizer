@@ -13,6 +13,7 @@ GRAY = (70, 70, 70)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
+WIN = (50, 125, 50)
 ORANGE = (255, 165, 0)
 BLACK = (0, 0, 0)
 
@@ -53,7 +54,7 @@ algorithm_buttons = {
     ),
     "A Star": pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(grid_width + 10, 120, 180, button_height),
-        text='A Star',
+        text='AStar',
         manager=manager
     ),
     "GBFS": pygame_gui.elements.UIButton(
@@ -72,10 +73,15 @@ algorithm_buttons = {
         manager=manager
     )
 }
-
-
 # Track the selected algorithm
 selected_algorithm = "BFS"  # Default selection
+
+# Create a label for displaying the step count
+steps_label = pygame_gui.elements.UILabel(
+    relative_rect=pygame.Rect(grid_width + 10, height * 0.75, 180, button_height),
+    text='Number of Nodes: 0',
+    manager=manager
+)
 
 play_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_width + 10, height*.85, 80, button_height), text='Play', manager=manager)
 stop_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_width + 110, height*.85, 85, button_height), text='Stop/Reset', manager=manager)
@@ -84,7 +90,12 @@ stop_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_wid
 # Helper function to update the cell with color and redraw
 def update_cell(x, y, color):
     rect = pygame.Rect(x * cell_width, y * cell_height, cell_width, cell_height)
-    pygame.draw.rect(screen, color, rect)
+    current_color = color
+    if (x, y) == agent_pos:
+        current_color = RED
+    elif (x, y) in goals:
+        current_color = WIN
+    pygame.draw.rect(screen, current_color, rect)
     pygame.draw.rect(screen, BLACK, rect, 1)
     pygame.display.update(rect)  # Update only the modified rect
 
@@ -130,21 +141,28 @@ def main_loop():
                     event.ui_element.select()
                     selected_algorithm = event.ui_element.text
                 elif event.ui_element == play_button_ui:
-                    result = starter.nodes_for_gui(selected_algorithm)
-                    if result:
-                        path, visited = result
+                    starter.reset_nodes()
+                    path, visited, steps = starter.nodes_for_gui(str(selected_algorithm))
+                    # Clear and update the steps label
+                    rect = pygame.Rect(grid_width + 10, height * 0.75, 180, button_height)
+                    pygame.draw.rect(screen, BLACK, rect)  # Assuming background is BLACK
+                    steps_label.set_text(f'Number of Nodes: {steps}')
+                    steps_label.rebuild()
+                    if path and visited:
                         current_step = 0
                         last_update_time = pygame.time.get_ticks()
                         algorithm_running = True
                 elif event.ui_element == stop_button_ui:
                     algorithm_running = False
                     draw_initial_state()  # Redraw initial state when stopped
+                    steps_label.set_text('Number of Nodes: 0')  # Reset the step count label
+
 
             manager.process_events(event)
 
         manager.update(time_delta)
 
-        if algorithm_running and pygame.time.get_ticks() - last_update_time > 100:
+        if algorithm_running and pygame.time.get_ticks() - last_update_time > 200:
             if current_step < len(visited):
                 node = visited[current_step]
                 update_cell(node[0], node[1], YELLOW)

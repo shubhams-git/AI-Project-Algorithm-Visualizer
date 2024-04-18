@@ -57,16 +57,33 @@ class Starter:
         # input("Press enter to show Uniform Cost for second goal")
         # print(self.treebased2.iddfs_search())
         # input("Press enter to exit Uniform Cost")
+    def reset_nodes(self):
+        return self.treebased.reset_nodes()
 
     def nodes_for_gui(self, algorithm_id):
         print("From Starter: Algorithm id: ", algorithm_id)
+        result_json_string = self.treebased.bfs_search()
+
         if algorithm_id == 'BFS':
-            result_json_string = self.treebased.bfs_search()
-            result = json.loads(result_json_string)
-            if 'result' in result:
-                path = result['result'].get('Path', [])
-                visited = [tuple(node.values()) for node in result['visited']]
-                return path, visited
-            else:
-                return [], []  # No path found
+            pass
+        elif algorithm_id == 'DFS':
+            result_json_string = self.treebased.dfs_search()
+        elif algorithm_id == 'AStar':
+            result_json_string = self.treebased.a_star_search()
+        elif algorithm_id == 'GBFS':
+            result_json_string = self.treebased.gbfs_search()
+        elif algorithm_id == 'Uniform Cost':
+            result_json_string = self.treebased.uniform_cost_search()
+        elif algorithm_id == 'Iterative Deepening DFS':
+            result_json_string = self.treebased.iddfs_search()
+
+        result = json.loads(result_json_string)
+        if 'result' in result:
+            path = result['result'].get('Path', [])
+            steps = result['result'].get('Steps', 0)  # Extract step count from result
+            visited = [tuple(node.values()) for node in result['visited']]
+            return path, visited, steps
+        else:
+            return [], [], 0  # No path or steps found
+
 

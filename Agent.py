@@ -70,12 +70,14 @@ class Agent:
         return json.dumps(response)
     
     def dfs_search(self):
-        print("Currently running DFS.")
+        response = {}
+        steps = 0
         start_time = time.time()
 
         if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
+            response['status'] = "Agent at goal already"
+            response['function_time'] = (time.time() - start_time) * 1000
+            return json.dumps(response)
 
         frontier = LifoQueue()
         visited = []
@@ -84,32 +86,47 @@ class Agent:
         while not frontier.empty():
             current_node = frontier.get()
             if current_node not in visited:
-                visited.append(current_node)
+                visited.append({"x": current_node.x, "y": current_node.y})  # Store nodes as dictionaries
+                steps += 1
 
                 if current_node.x == self.goalx and current_node.y == self.goaly:
                     path = self._reconstruct_path(current_node)
-                    execution_time = time.time() - start_time
-                    print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                    print("Visited: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in visited)))
-                    print("Number of nodes in the frontier: {}".format(frontier.qsize()))
-                    return "DFS Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), len(visited))
-
+                    response['status'] = "DFS Completed"
+                    response['function_time'] = (time.time() - start_time) * 1000
+                    response['visited'] = visited
+                    response['frontier_size'] = frontier.qsize()
+                    response['result'] = {
+                        "Agent": [self.root.x, self.root.y],
+                        "Goal": [self.goalx, self.goaly],
+                        "Path": self._format_path(path),
+                        "Steps": steps
+                    }
+                    return json.dumps(response)
+                
                 for neighbor in reversed(self._get_neighbors(current_node)):
-                    if neighbor not in visited and neighbor not in self.wallnodes:
+                     if (not any(node['x'] == neighbor.x and node['y'] == neighbor.y for node in visited) and
+                        not any(node.x == neighbor.x and node.y == neighbor.y for node in self.wallnodes)):
                         neighbor.parent = current_node
                         frontier.put(neighbor)
 
-        print("Number of nodes in the frontier: {}".format(frontier.qsize()))
-        return "Failed to get solution"
+        response['status'] = "Failed to find solution"
+        response['function_time'] = (time.time() - start_time) * 1000
+        response['frontier_size'] = frontier.qsize()
+        return json.dumps(response)
     
     def search(self, use_cost=True, use_heuristic=True):
+        response = {}
         steps = 0
-        print("Currently running Search with" + (" Cost" if use_cost else "") + (" and Heuristic." if use_heuristic else "."))
         start_time = time.time()
+        status_message = "Currently running Search with" + (" Cost" if use_cost else "") + (" and Heuristic." if use_heuristic else ".")
+        response['initial_status'] = status_message
+        
+        self.reset_nodes()
 
         if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
+            response['status'] = "Agent at goal already"
+            response['function_time'] = (time.time() - start_time) * 1000
+            return json.dumps(response)
 
         frontier = PriorityQueue()
         visited = []
@@ -123,31 +140,41 @@ class Agent:
             if (current_node.x, current_node.y) in visited:
                 continue
 
-            visited.append((current_node.x, current_node.y))
+            visited.append({"x": current_node.x, "y": current_node.y}) 
             steps += 1
 
             if current_node.x == self.goalx and current_node.y == self.goaly:
                 path = self._reconstruct_path(current_node)
-                execution_time = time.time() - start_time
-                print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited: {}".format('; '.join('[{},{}]'.format(x, y) for (x, y) in visited)))
-                return "Search Completed;\nAgent: [{},{}]\nGoal: [{},{}]\nPath: {}\nSteps: {}".format(self.root.x, self.root.y, self.goalx, self.goaly, self._format_path(path), steps)
-
+                response['status'] = "Search Completed"
+                response['function_time'] = (time.time() - start_time) * 1000
+                response['visited'] = visited
+                response['frontier_size'] = frontier.qsize()
+                response['result'] = {
+                    "Agent": [self.root.x, self.root.y],
+                    "Goal": [self.goalx, self.goaly],
+                    "Path": self._format_path(path),
+                    "Steps": steps
+                }
+                return json.dumps(response)
+            
             for neighbor in self._get_neighbors(current_node):
-                if (neighbor.x, neighbor.y) in visited or neighbor in self.wallnodes:
+                if (neighbor.x, neighbor.y) in visited or any(node.x == neighbor.x and node.y == neighbor.y for node in self.wallnodes):
                     continue  # Consistently handle walls
 
                 tentative_cost = current_node.Cost + 1 if use_cost else 0
                 heuristic_cost = self._heuristic(neighbor) if use_heuristic else 0
                 total_cost = tentative_cost + heuristic_cost
 
-                if total_cost < neighbor.cost:
+                if total_cost < getattr(neighbor, 'cost', float('inf')):
                     neighbor.cost = tentative_cost
                     neighbor.parent = current_node
                     counter += 1
                     frontier.put((total_cost, counter, neighbor))
 
-        return "Failed to find a solution"
+        response['status'] = "Failed to find solution"
+        response['function_time'] = (time.time() - start_time) * 1000
+        response['frontier_size'] = frontier.qsize()
+        return json.dumps(response)
 
     def gbfs_search(self):
         return self.search(use_cost=False, use_heuristic=True)
@@ -159,7 +186,7 @@ class Agent:
         return self.search(use_cost=True, use_heuristic=False)
         
     def iddfs_search(self):
-        print("Currently running Iterative Deepening Depth-First Search.")
+        response = {}
         start_time = time.time()
         max_depth = 0
         all_visited = []  # List to keep track of all visited nodes across all depths
@@ -167,20 +194,30 @@ class Agent:
         while True:
             visited_this_depth = []  # List to track nodes visited at this depth
             result, path = self._dls(self.root, self.goalx, self.goaly, max_depth, visited_this_depth)
-            all_visited.extend(visited_this_depth)  # Append this depth's visits to overall visits
+            for node in visited_this_depth:
+                if node not in all_visited:
+                    all_visited.append(node)  # Append this depth's visits to overall visits only if not already visited
             if result != "continue":
                 execution_time = time.time() - start_time
-                print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("All Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in all_visited)))
-                print("Total Visits: {}".format(len(all_visited)))
+                response['function_time'] = execution_time * 1000
+                response['visited'] = [{'x': node.x, 'y': node.y} for node in all_visited]
+                response['total_visits'] = len(all_visited)
                 if result == "success":
-                    return "IDDFS Completed;\nPath: {}\nSteps: {}".format(self._format_path(path), len(path))
+                    response['status'] = "IDDFS Completed"
+                    response['result'] = {
+                        "Path": self._format_path(path),
+                        "Steps": len(path)
+                    }
                 else:
-                    return "Failed to find a solution"
+                    response['status'] = "Failed to find a solution"
+                return json.dumps(response)
             max_depth += 1
 
+
     def _dls(self, node, goalx, goaly, depth, visited):
-        visited.append(node)  # Append node to visited list to maintain the order of visitation
+        # Append node to visited list to maintain the order of visitation only if it's not already in the list
+        if node not in visited:
+            visited.append(node)
 
         if node.x == goalx and node.y == goaly:
             return "success", [node]
@@ -301,7 +338,8 @@ class Agent:
         path_coordinates = [(node.x, node.y) for node in path]
         return path_coordinates
 
-    
-
-   
-    
+    def reset_nodes(self):
+        for row in self.nodes:
+            for node in row:
+                node.cost = float('inf')  # Reset cost to infinity
+                node.parent = None  # Reset the parent node
