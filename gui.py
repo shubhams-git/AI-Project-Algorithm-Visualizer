@@ -18,7 +18,13 @@ ORANGE = (255, 165, 0)
 BLACK = (0, 0, 0)
 
 # Create the starter object
-starter = Starter("test.txt")
+filename= ""
+if len(sys.argv) > 0:
+    filename = sys.argv[1]
+else:
+    filename = "test.txt"
+
+starter = Starter(filename)
 
 # Get the agent and grid details from the starter object
 grid_size = [starter.treebased.width, starter.treebased.length]
@@ -62,12 +68,12 @@ algorithm_buttons = {
         text='GBFS',
         manager=manager
     ),
-    "Uniform Cost": pygame_gui.elements.UIButton(
+    "CUS1": pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(grid_width + 10, 4*(button_height+10), 180, button_height),
-        text='Limited DFS',
+        text='Depth Limited DFS',
         manager=manager
     ),
-    "Iterative Deepening DFS": pygame_gui.elements.UIButton(
+    "CUS2": pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(grid_width + 10, 5*(button_height+10), 180, button_height),
         text='Hill Climbing',
         manager=manager

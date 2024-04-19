@@ -12,8 +12,6 @@ class Starter:
         goalloc = self.reader.get_goal()
         walls = self.reader.get_walls()
         self.treebased = Agent(agentloc[0], agentloc[1], goalloc[0], goalloc[1], gridsize[1], gridsize[0], walls)
-        self.treebased2 = Agent(agentloc[0], agentloc[1], goalloc[2], goalloc[3], gridsize[1], gridsize[0], walls)
-
     def execute_search(self, algorithm):
         result_json_string = self.treebased.bfs_search()
         if algorithm == "BFS":
@@ -59,20 +57,22 @@ class Starter:
 
     def nodes_for_gui(self, algorithm_id):
         print("From Starter: Algorithm id: ", algorithm_id)
-        result_json_string = self.treebased.bfs_search()
+        result_json_string = ""
 
         if algorithm_id == 'BFS':
-            pass
+            result_json_string = self.treebased.bfs_search()
         elif algorithm_id == 'DFS':
             result_json_string = self.treebased.dfs_search()
         elif algorithm_id == 'AStar':
             result_json_string = self.treebased.a_star_search()
         elif algorithm_id == 'GBFS':
             result_json_string = self.treebased.gbfs_search()
-        elif algorithm_id == 'Uniform Cost':
+        elif algorithm_id == 'Depth Limited DFS':
             result_json_string = self.treebased.ldfs_search()
         elif algorithm_id == 'Hill Climbing':
             result_json_string = self.treebased.hill_climbing_search()
+        else:
+            print("There is some issue with the algorithm name")
             
 
         result = json.loads(result_json_string)
