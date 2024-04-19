@@ -25,7 +25,7 @@ grid_size = [starter.treebased.width, starter.treebased.length]
 agent_pos = (starter.treebased.root.x, starter.treebased.root.y)
 goals = [(starter.treebased.goalx, starter.treebased.goaly)]
 walls = [(wall.x, wall.y) for wall in starter.treebased.wallnodes]
-height = 450
+height = 350
 cell_size = (height) // grid_size[0] 
 cell_width = cell_size
 cell_height = cell_size
@@ -43,33 +43,33 @@ button_height = int(height * 0.1)  # 5% of the screen height
 
 algorithm_buttons = {
     "BFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 50, 180, button_height),
+        relative_rect=pygame.Rect(grid_width + 10, 10, 180, button_height),
         text='BFS',
         manager=manager
     ),
     "DFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 85, 180, button_height),
+        relative_rect=pygame.Rect(grid_width + 10, button_height+15, 180, button_height),
         text='DFS',
         manager=manager
     ),
     "A Star": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 120, 180, button_height),
+        relative_rect=pygame.Rect(grid_width + 10, 2*(button_height+10), 180, button_height),
         text='AStar',
         manager=manager
     ),
     "GBFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 155, 180, button_height),
+        relative_rect=pygame.Rect(grid_width + 10, 3*(button_height+10), 180, button_height),
         text='GBFS',
         manager=manager
     ),
     "Uniform Cost": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 190, 180, button_height),
-        text='Uniform Cost',
+        relative_rect=pygame.Rect(grid_width + 10, 4*(button_height+10), 180, button_height),
+        text='Limited DFS',
         manager=manager
     ),
     "Iterative Deepening DFS": pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(grid_width + 10, 225, 180, button_height),
-        text='Iterative Deepening DFS',
+        relative_rect=pygame.Rect(grid_width + 10, 5*(button_height+10), 180, button_height),
+        text='Hill Climbing',
         manager=manager
     )
 }
@@ -117,12 +117,13 @@ def draw_initial_state():
     pygame.display.update()  # Update the whole screen
 
 def main_loop():
-    global selected_algorithm  # So we can modify the global variable
+    global selected_algorithm
     running = True
     algorithm_running = False
     last_update_time = 0
     current_step = 0
     path = []
+    status = "Idle"
     visited = []
     clock = pygame.time.Clock()
 
@@ -142,21 +143,20 @@ def main_loop():
                     selected_algorithm = event.ui_element.text
                 elif event.ui_element == play_button_ui:
                     starter.reset_nodes()
-                    path, visited, steps = starter.nodes_for_gui(str(selected_algorithm))
-                    # Clear and update the steps label
+                    algorithm_running = False
+                    draw_initial_state()
+                    path, visited, steps, status = starter.nodes_for_gui(selected_algorithm)
                     rect = pygame.Rect(grid_width + 10, height * 0.75, 180, button_height)
-                    pygame.draw.rect(screen, BLACK, rect)  # Assuming background is BLACK
-                    steps_label.set_text(f'Number of Nodes: {steps}')
+                    pygame.draw.rect(screen, BLACK, rect)  # Clear step count area
+                    steps_label.set_text(f'Number of Nodes: {steps}' if status != "No goal found" else 'No goal found')
                     steps_label.rebuild()
-                    if path and visited:
-                        current_step = 0
-                        last_update_time = pygame.time.get_ticks()
-                        algorithm_running = True
+                    current_step = 0
+                    last_update_time = pygame.time.get_ticks()
+                    algorithm_running = True
                 elif event.ui_element == stop_button_ui:
                     algorithm_running = False
-                    draw_initial_state()  # Redraw initial state when stopped
-                    steps_label.set_text('Number of Nodes: 0')  # Reset the step count label
-
+                    draw_initial_state()
+                    steps_label.set_text('Number of Nodes: 0')
 
             manager.process_events(event)
 
@@ -167,13 +167,12 @@ def main_loop():
                 node = visited[current_step]
                 update_cell(node[0], node[1], YELLOW)
                 current_step += 1
-                last_update_time = pygame.time.get_ticks()
-            elif current_step < len(path) + len(visited):
+            elif status != "No goal found" and current_step < len(path) + len(visited):
                 node = path[current_step - len(visited)]
                 update_cell(node[0], node[1], ORANGE)
                 current_step += 1
-                last_update_time = pygame.time.get_ticks()
-            else:
+            last_update_time = pygame.time.get_ticks()
+            if current_step >= len(visited) + len(path) or (status == "No goal found" and current_step >= len(visited)):
                 algorithm_running = False
 
         manager.draw_ui(screen)
@@ -184,4 +183,3 @@ def main_loop():
 
 if __name__ == "__main__":
     main_loop()
-

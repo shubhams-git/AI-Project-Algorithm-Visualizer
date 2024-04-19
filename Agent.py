@@ -52,6 +52,7 @@ class Agent:
                     "Agent": [self.root.x, self.root.y],
                     "Goal": [self.goalx, self.goaly],
                     "Path": self._format_path(path),
+                    "Path_Directions": self._path_directions(path),
                     "Steps": steps
                 }
                 return json.dumps(response)
@@ -64,7 +65,8 @@ class Agent:
                     neighbor.parent = current_node  # Set the parent of the neighbor
                     frontier.put(neighbor)
 
-        response['status'] = "Failed to find solution"
+        response['status'] = "No goal found"
+        response['visited'] = visited
         response['function_time'] = (time.time() - start_time) * 1000
         response['frontier_size'] = frontier.qsize()
         return json.dumps(response)
@@ -99,6 +101,7 @@ class Agent:
                         "Agent": [self.root.x, self.root.y],
                         "Goal": [self.goalx, self.goaly],
                         "Path": self._format_path(path),
+                        "Path_Directions": self._path_directions(path),
                         "Steps": steps
                     }
                     return json.dumps(response)
@@ -109,7 +112,8 @@ class Agent:
                         neighbor.parent = current_node
                         frontier.put(neighbor)
 
-        response['status'] = "Failed to find solution"
+        response['status'] = "No goal found"
+        response['visited'] = visited
         response['function_time'] = (time.time() - start_time) * 1000
         response['frontier_size'] = frontier.qsize()
         return json.dumps(response)
@@ -153,6 +157,7 @@ class Agent:
                     "Agent": [self.root.x, self.root.y],
                     "Goal": [self.goalx, self.goaly],
                     "Path": self._format_path(path),
+                    "Path_Directions": self._path_directions(path),
                     "Steps": steps
                 }
                 return json.dumps(response)
@@ -171,7 +176,8 @@ class Agent:
                     counter += 1
                     frontier.put((total_cost, counter, neighbor))
 
-        response['status'] = "Failed to find solution"
+        response['status'] = "No goal found"
+        response['visited'] = visited
         response['function_time'] = (time.time() - start_time) * 1000
         response['frontier_size'] = frontier.qsize()
         return json.dumps(response)
@@ -206,10 +212,12 @@ class Agent:
                     response['status'] = "IDDFS Completed"
                     response['result'] = {
                         "Path": self._format_path(path),
+                        "Path_Directions": self._path_directions(path),
                         "Steps": len(path)
                     }
                 else:
-                    response['status'] = "Failed to find a solution"
+                    response['status'] = "No goal found"
+                    response['visited'] = [{'x': node.x, 'y': node.y} for node in all_visited]
                 return json.dumps(response)
             max_depth += 1
 
@@ -232,84 +240,105 @@ class Agent:
                     return "success", [node] + path
 
         return "continue", []
-
-
     
-    def bidirectional_search(self):
-        print("Currently running Bidirectional Search.")
+
+    def ldfs_search(self, depth_limit=50):
+        response = {}
+        steps = 0
         start_time = time.time()
 
         if self.root.x == self.goalx and self.root.y == self.goaly:
-            print("Function execution time: {} seconds".format(time.time() - start_time))
-            return "Agent at goal already"
+            response['status'] = "Agent at goal already"
+            response['function_time'] = (time.time() - start_time) * 1000
+            return json.dumps(response)
 
-        from_start = Queue()
-        from_goal = Queue()
+        frontier = LifoQueue()  # LIFO queue for stack behavior
+        visited = []
+        frontier.put((self.root, 0))  # Store node along with its depth
 
-        visited_from_start = {self.root: None}  # Dictionary to track path and check for visits
-        visited_from_goal = {self.nodes[self.goalx][self.goaly]: None}  # Dictionary to track path and check for visits
+        while not frontier.empty():
+            current_node, current_depth = frontier.get()
+            visited.append({"x": current_node.x, "y": current_node.y})  # Store nodes as dictionaries
+            steps += 1
 
-        from_start.put(self.root)
-        from_goal.put(self.nodes[self.goalx][self.goaly])
+            if current_node.x == self.goalx and current_node.y == self.goaly:
+                path = self._reconstruct_path(current_node)
+                response['status'] = "LDFS Completed"
+                response['function_time'] = (time.time() - start_time) * 1000
+                response['visited'] = visited
+                response['frontier_size'] = frontier.qsize()
+                response['result'] = {
+                    "Agent": [self.root.x, self.root.y],
+                    "Goal": [self.goalx, self.goaly],
+                    "Path": self._format_path(path),
+                    "Path_Directions": self._path_directions(path),
+                    "Steps": steps
+                }
+                return json.dumps(response)
 
-        while not from_start.empty() and not from_goal.empty():
-            if self._meet_in_middle(from_start, visited_from_start, visited_from_goal, True):
-                mid_node, path = self._reconstruct_bidirectional_path(visited_from_start, visited_from_goal, True)
-                execution_time = time.time() - start_time
-                all_visited = list(visited_from_start.keys()) + list(visited_from_goal.keys())
-                print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in set(all_visited))))
-                return f"Bidirectional Search Completed;\nPath: {self._format_path(path)}\nSteps: {len(path)}"
+            if current_depth < depth_limit:
+                for neighbor in reversed(self._get_neighbors(current_node)):
+                    if not any(node['x'] == neighbor.x and node['y'] == neighbor.y for node in visited) and \
+                    not any(node.x == neighbor.x and node.y == neighbor.y for node in self.wallnodes):
+                        neighbor.parent = current_node
+                        frontier.put((neighbor, current_depth + 1))
 
-            if self._meet_in_middle(from_goal, visited_from_goal, visited_from_start, False):
-                mid_node, path = self._reconstruct_bidirectional_path(visited_from_goal, visited_from_start, False)
-                execution_time = time.time() - start_time
-                all_visited = list(visited_from_start.keys()) + list(visited_from_goal.keys())
-                print("Function execution time: {} milliseconds".format(execution_time * 1000))
-                print("Visited Nodes: {}".format('; '.join('[{},{}]'.format(node.x, node.y) for node in set(all_visited))))
-                return f"Bidirectional Search Completed;\nPath: {self._format_path(path)}\nSteps: {len(path)}"
-
-        return "Failed to find a solution"
+        response['status'] = "No goal found"
+        response['visited'] = visited
+        response['function_time'] = (time.time() - start_time) * 1000
+        response['frontier_size'] = frontier.qsize()
+        return json.dumps(response)
     
-    def _meet_in_middle(self, frontier, visited_by_this, visited_by_other, from_start):
-        if not frontier.empty():
-            current = frontier.get()
+    def hill_climbing_search(self):
+        response = {}
+        start_time = time.time()
+        steps = 0
 
-            for neighbor in self._get_neighbors(current):
-                if neighbor not in self.wallnodes and neighbor not in visited_by_this:
-                    visited_by_this[neighbor] = current
-                    frontier.put(neighbor)
-                    if neighbor in visited_by_other:
-                        return True
-        return False
- 
-    def _reconstruct_bidirectional_path(self, visited_from_one_side, visited_from_other_side, from_start):
-        # Find meeting point
-        meet_point = next(node for node in visited_from_one_side if node in visited_from_other_side)
+        if self.root.x == self.goalx and self.root.y == self.goaly:
+            response['status'] = "Agent at goal already"
+            response['function_time'] = (time.time() - start_time) * 1000
+            return json.dumps(response)
 
-        # Path from start to meet_point
-        path_from_one_side = []
-        step = meet_point
-        while step is not None:
-            path_from_one_side.append(step)
-            step = visited_from_one_side[step]
+        current_node = self.root
+        visited = [{"x": current_node.x, "y": current_node.y}]
 
-        # Path from goal to meet_point
-        path_from_other_side = []
-        step = visited_from_other_side[meet_point]
-        while step is not None:
-            path_from_other_side.append(step)
-            step = visited_from_other_side[step]
+        while current_node.x != self.goalx or current_node.y != self.goaly:
+            neighbors = self._get_neighbors(current_node)
+            if not neighbors:
+                break
 
-        # Depending on the direction of the search, reverse the appropriate path
-        if from_start:
-            path_from_one_side.reverse()  # Reverse the path from start to meet_point
-            full_path = path_from_one_side + path_from_other_side
+            # Sort neighbors based on the heuristic function, aiming for the lowest value (closest to goal)
+            neighbors.sort(key=lambda node: self._heuristic(node))
+            
+            # Move to the neighbor with the lowest heuristic value
+            next_node = neighbors[0]
+            if self._heuristic(next_node) >= self._heuristic(current_node):
+                # No better neighbors, algorithm stops
+                break
+            
+            current_node = next_node
+            visited.append({"x": current_node.x, "y": current_node.y})
+            steps += 1
+
+        if current_node.x == self.goalx and current_node.y == self.goaly:
+            path = self._reconstruct_path(current_node)
+            response['status'] = "Hill Climbing Search Completed"
+            response['function_time'] = (time.time() - start_time) * 1000
+            response['visited'] = visited
+            response['result'] = {
+                "Agent": [self.root.x, self.root.y],
+                "Goal": [self.goalx, self.goaly],
+                "Path": self._format_path(path),
+                "Path_Directions": self._path_directions(path),
+                "Steps": steps
+            }
         else:
-            path_from_other_side.reverse()  # Reverse the path from goal to meet_point
-            full_path = path_from_other_side + path_from_one_side
+            response['visited'] = visited
+            response['status'] = "No goal found"
+            response['function_time'] = (time.time() - start_time) * 1000
 
-        return meet_point, full_path
+        return json.dumps(response)
+
 
    
     def _get_neighbors(self, current_node):
@@ -343,3 +372,12 @@ class Agent:
             for node in row:
                 node.cost = float('inf')  # Reset cost to infinity
                 node.parent = None  # Reset the parent node
+    
+    def _path_directions(self, path):
+        directions = {"(0, -1)": "up", "(-1, 0)": "left", "(0, 1)": "down", "(1, 0)": "right"}
+        path_directions = []
+        for i in range(1, len(path)):
+            dx, dy = path[i].x - path[i-1].x, path[i].y - path[i-1].y
+            direction = directions.get(str((dx, dy)), '')
+            path_directions.append(direction)
+        return path_directions

@@ -14,49 +14,46 @@ class Starter:
         self.treebased = Agent(agentloc[0], agentloc[1], goalloc[0], goalloc[1], gridsize[1], gridsize[0], walls)
         self.treebased2 = Agent(agentloc[0], agentloc[1], goalloc[2], goalloc[3], gridsize[1], gridsize[0], walls)
 
-    def draw(self):
-        return ""
-
-    def bfs_search(self):
+    def execute_search(self, algorithm):
         result_json_string = self.treebased.bfs_search()
+        if algorithm == "BFS":
+            pass
+        elif algorithm == "DFS":
+            result_json_string = self.treebased.dfs_search()
+        elif algorithm == "AS":
+            result_json_string = self.treebased.a_star_search()
+        elif algorithm == "GBFS":
+            result_json_string = self.treebased.gbfs_search()
+        elif algorithm == "CUS1":
+            result_json_string = self.treebased.ldfs_search()
+        elif algorithm == "CUS2":
+            result_json_string = self.treebased.hill_climbing_search()
+        
         result = json.loads(result_json_string)
         if 'result' in result:
-            print("Path: ", result['result'].get('Path', 'No path found'))
+            steps = result['result'].get('Steps', 0)
+            goal = result['result'].get('Goal', [-1, -1])  # Default to [-1, -1] if no goal is found
+            path = result['result'].get('Path_Directions', [-1,-1])
+            if goal[0] != -1:  # Check if goal is reachable
+                print(self._format_goal_result(goal, steps))
+                if path != [-1,-1]:
+                    return path
+                else:
+                    return "" 
+            else:
+                return "No goal is reachable; {}".format(steps)
         else:
-            print("Search status: ", result.get('status', 'Unknown status'))
-        # input("Press enter to show BFS for second goal")
-        # print(self.treebased2.bfs_search())
-        # input("Press enter to exit BFS")
+            steps = len(result['visited'])
+            return "No goal is reachable; {}".format(steps)
 
-    def dfs_search(self):
-        print(self.treebased.dfs_search())
-        # input("Press enter to show DFS for second goal")
-        # print(self.treebased2.dfs_search())
-        # input("Press enter to exit DFS")
 
-    def gbfs_search(self):
-        print(self.treebased.gbfs_search())
-        # input("Press enter to show GBFS for second goal")
-        # print(self.treebased2.gbfs_search())
-        # input("Press enter to exit GBFS")
+    def _format_goal_result(self, goal, steps):
+        if goal[0] != -1:
+            return f"<Node ({goal[0]}, {goal[1]})> {steps}"
+        else:
+            return f"No goal is reachable; {steps}"
 
-    def a_star_search(self):
-        print(self.treebased.a_star_search())
-        # input("Press enter to show AStar for second goal")
-        # print(self.treebased2.a_star_search())
-        # input("Press enter to exit AStar")
 
-    def uniform_cost_search(self):
-        print(self.treebased.uniform_cost_search())
-        # input("Press enter to show Uniform Cost Searchfor second goal")
-        # print(self.treebased2.uniform_cost_search())
-        # input("Press enter to exit Uniform Cost Search")
-    
-    def iddfs_search(self):
-        print(self.treebased.iddfs_search())
-        # input("Press enter to show Uniform Cost for second goal")
-        # print(self.treebased2.iddfs_search())
-        # input("Press enter to exit Uniform Cost")
     def reset_nodes(self):
         return self.treebased.reset_nodes()
 
@@ -73,17 +70,24 @@ class Starter:
         elif algorithm_id == 'GBFS':
             result_json_string = self.treebased.gbfs_search()
         elif algorithm_id == 'Uniform Cost':
-            result_json_string = self.treebased.uniform_cost_search()
-        elif algorithm_id == 'Iterative Deepening DFS':
-            result_json_string = self.treebased.iddfs_search()
+            result_json_string = self.treebased.ldfs_search()
+        elif algorithm_id == 'Hill Climbing':
+            result_json_string = self.treebased.hill_climbing_search()
+            
 
         result = json.loads(result_json_string)
         if 'result' in result:
             path = result['result'].get('Path', [])
             steps = result['result'].get('Steps', 0)  # Extract step count from result
             visited = [tuple(node.values()) for node in result['visited']]
-            return path, visited, steps
+            status = result['status']
+            return path, visited, steps, status
         else:
-            return [], [], 0  # No path or steps found
+            if 'status' in result:
+                visited = [tuple(node.values()) for node in result['visited']]
+                status = result['status']
+                print(status)
+                return [],visited,0, status
+            return [], [], 0, ""  # No path or steps found
 
 
