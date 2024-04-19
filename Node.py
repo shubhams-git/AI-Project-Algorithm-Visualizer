@@ -1,11 +1,15 @@
 class Node:
+    """
+    Represents a node in a graph for pathfinding algorithms, encapsulating position,
+    cost, and connectivity details.
+    """
     def __init__(self, givx, givy, parentnode=None):
         self.x = givx
         self.y = givy
-        self.wallstatus = False
+        self.wallstatus = False # Indicates whether the node is impassable
         self.parent = parentnode
-        self.cost = float('inf')  # Initialize cost with infinity
-        self.edges = []
+        self.cost = float('inf')  # Pathfinding cost initialized to infinity
+        self.edges = []  # Adjacent nodes
 
     @property
     def X(self):
@@ -29,7 +33,7 @@ class Node:
 
     @Wallstatus.setter
     def Wallstatus(self, value):
-        self.wallstatus = value
+        self.wallstatus = value # Sets node as a wall if True
 
     @property
     def Parent(self):
@@ -41,7 +45,7 @@ class Node:
 
     @property
     def Edges(self):
-        return self.edges
+        return self.edges # Updates connections to other nodes
 
     @Edges.setter
     def Edges(self, value):
@@ -53,4 +57,4 @@ class Node:
 
     @Cost.setter
     def Cost(self, value):
-        self.cost = value
+        self.cost = value # Updates the cost of reaching this node

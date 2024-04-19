@@ -1,6 +1,9 @@
 import re
 
 class FileReader:
+    """
+    Provides methods to read and parse configuration data from a file for a grid-based pathfinding simulation.
+    """
     def __init__(self, filename):
         self.line = ""
         self.grid = ""
@@ -10,6 +13,9 @@ class FileReader:
         self.filename = filename
 
     def read(self):
+        """
+        Reads the configuration from the file and stores grid size, agent position, goal position, and wall positions.
+        """
         with open(self.filename, 'r') as file:
             lines = file.readlines()
 
@@ -21,6 +27,10 @@ class FileReader:
             self.goal = lines[2].strip()
         if len(lines) > 3:
             self.walls = [line.strip() for line in lines[3:]]
+
+    """
+    Parses the text file.
+    """
 
     def get_grid(self):
         return [int(value) for value in re.findall(r'\d+', self.grid)]

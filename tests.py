@@ -6,13 +6,16 @@ import subprocess
 import re
 
 
-# Constants for the directory paths and file names
+# Constants for directory paths and filenames
 TESTS_DIR = "tests"
 RESULTS_FILE = "test_results.json"
 SUMMARY_FILE = "summary_report.txt"
 
 def generate_test_cases():
-    # This function generates a list of test case dictionaries based on the scenarios.
+    """
+    Generates a predefined list of test case scenarios for pathfinding algorithms.
+    Each test case includes a grid size, starting position, goal positions, and any walls.
+    """
     return [
         # Simple straight path
         {
@@ -114,7 +117,9 @@ def generate_test_cases():
 
 
 def create_test_file(test_case, test_id):
-    # Given a test_case dictionary and a test_id, this function creates a test file in the TESTS_DIR.
+    """
+    Creates a test file from a test case dictionary in the designated tests directory.
+    """
     test_file_name = os.path.join(TESTS_DIR, f"test_{test_id}.txt")
     with open(test_file_name, 'w') as file:
         file.write(f"[{test_case['grid_size'][0]},{test_case['grid_size'][1]}]\n")
@@ -125,13 +130,17 @@ def create_test_file(test_case, test_id):
     return test_file_name
 
 def run_search_algorithm(test_file, algorithm):
-    # Runs a search algorithm on a test file and returns the results.
+    """
+    Executes a search algorithm on the specified test file and returns the stdout.
+    """
     command = ['python', 'Run.py', test_file, algorithm]
     result = subprocess.run(command, capture_output=True, text=True)
     return result.stdout
 
 def collect_results(test_cases, algorithms):
-    # This function runs each algorithm on each test case and collects the results.
+    """
+    Collects results from running each algorithm on each test case.
+    """
     results = {}
     for test_case in test_cases:
         test_file = create_test_file(test_case, test_case['id'])
@@ -142,6 +151,9 @@ def collect_results(test_cases, algorithms):
     return results
 
 def parse_output(output):
+    """
+    Parses the output from the search algorithm into a structured dictionary.
+    """
     result = {"goal_reached": False, "nodes_created": 0, "path": [], "goal_node": None}
     if "No goal is reachable" in output:
         match = re.search(r"No goal is reachable; (\d+)", output)
@@ -157,12 +169,16 @@ def parse_output(output):
     return result
 
 def save_results(results):
-    # Saves the collected results to a JSON file in the TESTS_DIR.
+    """
+    Saves the collected results into a JSON file.
+    """
     with open(os.path.join(TESTS_DIR, RESULTS_FILE), 'w') as f:
         json.dump(results, f, indent=4)
 
 def generate_summary_report(results):
-    # Generates a summary report from the results and saves it as a text file.
+    """
+    Generates a text file summary report from the collected results.
+    """
     summary = ""
     for test_id, test_results in results.items():
         summary += f"Test Case ID: {test_id}\n"
@@ -178,22 +194,14 @@ def generate_summary_report(results):
         f.write(summary)
 
 def main():
-    # Ensure the tests directory exists
-    Path(TESTS_DIR).mkdir(exist_ok=True)
-    
-    # Generate test cases
+    """
+    Main execution function that prepares the environment, runs tests, and generates reports.
+    """
+    Path(TESTS_DIR).mkdir(exist_ok=True)    
     test_cases = generate_test_cases()
-    
-    # Define the algorithms to test
     algorithms = ["BFS", "DFS", "GBFS", "AS", "CUS1", "CUS2"]
-    
-    # Collect results from running the test cases
     results = collect_results(test_cases, algorithms)
-    
-    # Save the results to a file
     save_results(results)
-    
-    # Generate a summary report
     generate_summary_report(results)
 
 if __name__ == "__main__":

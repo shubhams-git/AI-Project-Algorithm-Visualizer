@@ -3,6 +3,12 @@ import pygame_gui
 import sys
 from Starter import Starter
 
+if len(sys.argv) != 2:
+    print("Usage: python gui.py <text_file>")
+    sys.exit()
+
+filename = sys.argv[1]  # Get the filename from command line argument
+
 # Initialize Pygame and Pygame GUI Manager
 pygame.init()
 pygame.display.set_caption("Algorithm Visualizer")
@@ -17,16 +23,10 @@ WIN = (50, 125, 50)
 ORANGE = (255, 165, 0)
 BLACK = (0, 0, 0)
 
-# Create the starter object
-filename= ""
-if len(sys.argv) > 0:
-    filename = sys.argv[1]
-else:
-    filename = "test.txt"
-
+# Create the starter object with the provided filename
 starter = Starter(filename)
 
-# Get the agent and grid details from the starter object
+# Retrieve and set up grid and agent configuration from file
 grid_size = [starter.treebased.width, starter.treebased.length]
 agent_pos = (starter.treebased.root.x, starter.treebased.root.y)
 goals = [(starter.treebased.goalx, starter.treebased.goaly)]
@@ -36,17 +36,13 @@ cell_size = (height) // grid_size[0]
 cell_width = cell_size
 cell_height = cell_size
 grid_width = cell_size * grid_size[1]
-total_width = grid_width + 200  # Additional 200 pixels for control panel
+total_width = grid_width + 200  # Additional width for UI controls
 screen = pygame.display.set_mode((total_width, height))
 manager = pygame_gui.UIManager((total_width, height))
-button_height = int(height * 0.1)  # 5% of the screen height
+button_height = int(height * 0.1) 
 
 
-
-
-
-# Define control panel area and components for algorithm selection
-
+# Define buttons and labels for control panel
 algorithm_buttons = {
     "BFS": pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(grid_width + 10, 10, 180, button_height),
@@ -82,7 +78,7 @@ algorithm_buttons = {
 # Track the selected algorithm
 selected_algorithm = "BFS"  # Default selection
 
-# Create a label for displaying the step count
+# A label for displaying the step count
 steps_label = pygame_gui.elements.UILabel(
     relative_rect=pygame.Rect(grid_width + 10, height * 0.75, 180, button_height),
     text='Number of Nodes: 0',
@@ -93,7 +89,7 @@ play_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_wid
 stop_button_ui = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(grid_width + 110, height*.85, 85, button_height), text='Stop/Reset', manager=manager)
 
 
-# Helper function to update the cell with color and redraw
+# Helper functions to update and initialize the grid display
 def update_cell(x, y, color):
     rect = pygame.Rect(x * cell_width, y * cell_height, cell_width, cell_height)
     current_color = color
@@ -102,12 +98,12 @@ def update_cell(x, y, color):
     elif (x, y) in goals:
         current_color = WIN
     pygame.draw.rect(screen, current_color, rect)
-    pygame.draw.rect(screen, BLACK, rect, 1)
-    pygame.display.update(rect)  # Update only the modified rect
+    pygame.draw.rect(screen, BLACK, rect, 1)# Border for each cell
+    pygame.display.update(rect)  # Partial screen update for efficiency
 
 def draw_initial_state():
     """Draws the initial state of the grid, only once or upon reset."""
-    screen.fill(BLACK)  # Fill the entire screen to reset
+    screen.fill(BLACK)   # Fill the background
     for y in range(grid_size[0]):
         for x in range(grid_size[1]):
             rect = pygame.Rect(x * cell_width, y * cell_height, cell_width, cell_height)
@@ -123,6 +119,7 @@ def draw_initial_state():
     pygame.display.update()  # Update the whole screen
 
 def main_loop():
+    """Main loop handling event processing, UI updates, and rendering."""
     global selected_algorithm
     running = True
     algorithm_running = False
@@ -136,7 +133,7 @@ def main_loop():
     draw_initial_state()
 
     while running:
-        time_delta = clock.tick(60) / 1000.0
+        time_delta = clock.tick(60) / 1000.0 # Limit frame rate and compute delta
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
