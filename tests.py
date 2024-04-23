@@ -19,99 +19,51 @@ def generate_test_cases():
     return [
         # Simple straight path
         {
-            'id': 1,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(2, 2)],
-            'walls': []
+            'id': 1,'grid_size': [3, 3],'start': (0, 0),'goals': [(2, 2)],'walls': []
         },
         # Single obstacle
         {
-            'id': 2,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(2, 2)],
-            'walls': [(1, 1, 1, 1)]
+            'id': 2,'grid_size': [3, 3],'start': (0, 0),'goals': [(2, 2)],'walls': [(1, 1, 1, 1)]
         },
         # Multiple obstacles
         {
-            'id': 3,
-            'grid_size': [5, 5],
-            'start': (0, 0),
-            'goals': [(4, 4)],
-            'walls': [(0, 1, 5, 1), (2, 2, 1, 3)]
+            'id': 3,'grid_size': [5, 5],'start': (0, 0),'goals': [(4, 4)],'walls': [(0, 1, 5, 1), (2, 2, 1, 3)]
         },
         # Corner goal
         {
-            'id': 4,
-            'grid_size': [3, 3],
-            'start': (1, 1),
-            'goals': [(0, 0)],
-            'walls': []
+            'id': 4,'grid_size': [3, 3],'start': (1, 1),'goals': [(0, 0)],'walls': []
         },
         # Edge goal
         {
-            'id': 5,
-            'grid_size': [3, 3],
-            'start': (1, 1),
-            'goals': [(0, 1)],
-            'walls': []
+            'id': 5,'grid_size': [3, 3],'start': (1, 1),'goals': [(0, 1)],'walls': []
         },
         # Central goal
         {
-            'id': 6,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(1, 1)],
-            'walls': []
+            'id': 6,'grid_size': [3, 3],'start': (0, 0),'goals': [(1, 1)],'walls': []
         },
         # Dead ends
         {
-            'id': 7,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(2, 2)],
-            'walls': [(1, 0, 1, 2), (0, 1, 2, 1)]
+            'id': 7,'grid_size': [3, 3],'start': (0, 0),'goals': [(2, 2)],'walls': [(1, 0, 1, 2), (0, 1, 2, 1)]
         },
         # Multiple goals
         {
-            'id': 8,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(2, 0), (0, 2)],
-            'walls': []
+            'id': 8,'grid_size': [3, 3],'start': (0, 0),'goals': [(2, 0), (0, 2)],'walls': []
         },
         # Large grid
         {
-            'id': 9,
-            'grid_size': [10, 10],
-            'start': (0, 0),
-            'goals': [(9, 9)],
-            'walls': []
+            'id': 9,'grid_size': [10, 10],'start': (0, 0),'goals': [(9, 9)],'walls': []
         },
         # Path with minimum turns
         {
-            'id': 10,
-            'grid_size': [5, 5],
-            'start': (0, 0),
-            'goals': [(4, 4)],
-            'walls': [(0, 1, 1, 4), (1, 3, 3, 1), (3, 1, 1, 2)]
+            'id': 10,'grid_size': [5, 5],'start': (0, 0),'goals': [(4, 4)],'walls': [(0, 1, 1, 4), (1, 3, 3, 1), (3, 1, 1, 2)]
         },
         # Unreachable goal
         {
-            'id': 11,
-            'grid_size': [3, 3],
-            'start': (0, 0),
-            'goals': [(1, 1)],
-            'walls': [(0, 1, 1, 2), (1, 0, 2, 1), (1, 2, 2, 1), (2, 1, 1, 2)]
+            'id': 11,'grid_size': [3, 3],'start': (0, 0),'goals': [(1, 1)],'walls': [(0, 1, 1, 2), (1, 0, 2, 1), (1, 2, 2, 1), (2, 1, 1, 2)]
         },
         # Complex maze
         {
-            'id': 12,
-            'grid_size': [5, 5],
-            'start': (0, 0),
-            'goals': [(4, 4)],
-            'walls': [(0, 1, 1, 1), (1, 1, 1, 1), (1, 3, 3, 1), (3, 1, 1, 2), (2, 2, 1, 1)]
+            'id': 12,'grid_size': [5, 5],'start': (0, 0),'goals': [(4, 4)],'walls': [(0, 1, 1, 1), (1, 1, 1, 1), (1, 3, 3, 1), (3, 1, 1, 2), (2, 2, 1, 1)]
         },
     ]
 
