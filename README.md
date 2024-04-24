@@ -5,13 +5,13 @@ This Robot Navigation software simulates a robot navigating through a grid-based
 
 ## Frameworks and Languages
 
-### Python
+**1. Python:**
 The core of this project is developed using Python. The model uses Object-Oriented Programming (OOP) in Python to implement the basic setup.
 
-### Pygame
+**2. Pygame:**
 Pygame is a set of Python modules designed for writing video games. In this project, Pygame provides the tools necessary to render the graphical interface, allowing for the visualization of the navigation algorithms.
 
-### Pygame GUI
+**3. Pygame GUI:**
 Pygame GUI is an extension of Pygame that facilitates the creation of user interfaces in applications that use Pygame. It provides an easier and more structured way to create buttons, text boxes, and other GUI elements, which are used extensively in this project to control the algorithm's parameters and visualize their effects interactively.
 
 
