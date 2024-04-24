@@ -59,9 +59,7 @@ Acknowledgements
 
 ### Notes:
 **Requirements File**: 
-- Open a text editor.
-- Paste the below content into the editor.
-- Save the file as requirements.txt in the root directory of your project.
+- Easily install all required dependencies by running pip install -r requirements.txt, ensuring that the correct versions of Pygame and Pygame GUI are installed, facilitating a smooth setup and run of the project.
 
     ```bash
     pygame==2.1.2
