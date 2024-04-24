@@ -29,20 +29,20 @@ This Robot Navigation software simulates a robot navigating through a grid-based
 
 
 ### Usage
-To run the program, navigate to the project directory and execute the following in the command line:
+1. To run the program, navigate to the project directory and execute the following in the command line:
     ```bash
-    python Run.py <text_file_name>.txt <Algorithm name>
+    python Run.py text_file_name.txt <Algorithm name>
 
 - Replace **<text_file_name>.txt** with the path to your grid configuration file, and **<Algorithm name>** with one of the supported algorithms: BFS, DFS, GBFS, AS, CUS1, or CUS2.
 
 ### Running the GUI
-To launch the graphical interface:
+1. To launch the graphical interface:
     ```bash
     python gui.py <text_file_name>.txt
 - Replace **<text_file_name>.txt** with the path to your grid configuration file
 
 ### Tests
-To run automated tests across various scenarios:
+1. To run automated tests across various scenarios:
     ```bash
     python tests.py
 
